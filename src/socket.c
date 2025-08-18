@@ -1096,7 +1096,7 @@ jump_thread_func(void *arg)
     cb = ssh_list_pop_head(struct ssh_jump_callbacks_struct *,
                            jump_session->opts.proxy_jumps_user_cb);
 
-    if (cb != NULL) {
+    if (cb != NULL && cb->before_connection != NULL) {
         rc = cb->before_connection(jump_session, cb->userdata);
         if (rc != SSH_OK) {
             SSH_LOG(SSH_LOG_WARN, "%s", ssh_get_error(jump_session));
