@@ -1205,6 +1205,8 @@ exit:
     ssh_event_free(event);
     ssh_free(jump_session);
 
+    shutdown(jump_thread_data->fd, SHUT_RDWR);
+    close(jump_thread_data->fd);
     SAFE_FREE(jump_thread_data);
 
     pthread_exit(NULL);
