@@ -8,6 +8,10 @@
 #cmakedefine BINARYDIR "${BINARYDIR}"
 #cmakedefine SOURCEDIR "${SOURCEDIR}"
 
+/* Global configuration directory */
+#cmakedefine USR_GLOBAL_CONF_DIR "${USR_GLOBAL_CONF_DIR}"
+#cmakedefine GLOBAL_CONF_DIR "${GLOBAL_CONF_DIR}"
+
 /* Global bind configuration file path */
 #cmakedefine GLOBAL_BIND_CONFIG "${GLOBAL_BIND_CONFIG}"
 

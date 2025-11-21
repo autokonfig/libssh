@@ -69,12 +69,22 @@ if (WITH_ABI_BREAK)
     set(WITH_SYMBOL_VERSIONING ON)
 endif (WITH_ABI_BREAK)
 
+set(GLOBAL_CONF_DIR "/etc/ssh")
+if (WIN32)
+    # Use PROGRAMDATA on Windows
+    if (DEFINED ENV{PROGRAMDATA})
+        set(GLOBAL_CONF_DIR "$ENV{PROGRAMDATA}/ssh")
+    else ()
+        set(GLOBAL_CONF_DIR "C:/ProgramData/ssh")
+    endif ()
+endif ()
+
 if (NOT GLOBAL_BIND_CONFIG)
-    set(GLOBAL_BIND_CONFIG "/etc/ssh/libssh_server_config")
+    set(GLOBAL_BIND_CONFIG "${GLOBAL_CONF_DIR}/libssh_server_config")
 endif (NOT GLOBAL_BIND_CONFIG)
 
 if (NOT GLOBAL_CLIENT_CONFIG)
-    set(GLOBAL_CLIENT_CONFIG "/etc/ssh/ssh_config")
+    set(GLOBAL_CLIENT_CONFIG "${GLOBAL_CONF_DIR}/ssh_config")
 endif (NOT GLOBAL_CLIENT_CONFIG)
 
 if (FUZZ_TESTING)
