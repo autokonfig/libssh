@@ -2933,6 +2933,23 @@ static void torture_config_jump(void **state)
     printf("%s: EOF\n", __func__);
 }
 
+/* Invalid configuration files
+ */
+static void torture_config_invalid(void **state)
+{
+    ssh_session session = *state;
+
+    ssh_options_set(session, SSH_OPTIONS_HOST, "Bar");
+
+    /* non-regular file -- ignored (or missing on non-unix) so OK */
+    _parse_config(session, "/dev/random", NULL, SSH_OK);
+
+#ifndef _WIN32
+    /* huge file -- ignored (or missing on non-unix) so OK */
+    _parse_config(session, "/proc/kcore", NULL, SSH_OK);
+#endif
+}
+
 int torture_run_tests(void)
 {
     int rc;
@@ -3085,6 +3102,9 @@ int torture_run_tests(void)
                                         setup,
                                         teardown),
         cmocka_unit_test_setup_teardown(torture_config_jump,
+                                        setup,
+                                        teardown),
+        cmocka_unit_test_setup_teardown(torture_config_invalid,
                                         setup,
                                         teardown),
     };

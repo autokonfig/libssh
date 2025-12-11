@@ -2008,11 +2008,16 @@ int ssh_options_parse_config(ssh_session session, const char *filename)
         goto out;
     }
     if (filename == NULL) {
-        if ((fp = fopen(GLOBAL_CLIENT_CONFIG, "r")) != NULL) {
+        fp = ssh_strict_fopen(GLOBAL_CLIENT_CONFIG, SSH_MAX_CONFIG_FILE_SIZE);
+        if (fp != NULL) {
             filename = GLOBAL_CLIENT_CONFIG;
 #ifdef USR_GLOBAL_CLIENT_CONFIG
-        } else if ((fp = fopen(USR_GLOBAL_CLIENT_CONFIG, "r")) != NULL) {
-            filename = USR_GLOBAL_CLIENT_CONFIG;
+        } else {
+            fp = ssh_strict_fopen(USR_GLOBAL_CLIENT_CONFIG,
+                                  SSH_MAX_CONFIG_FILE_SIZE);
+            if (fp != NULL) {
+                filename = USR_GLOBAL_CLIENT_CONFIG;
+            }
 #endif
         }
 
