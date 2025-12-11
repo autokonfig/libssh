@@ -587,7 +587,7 @@ const char *sftp_extensions_get_name(sftp_session sftp, unsigned int idx)
         return NULL;
     }
 
-    if (idx > sftp->ext->count) {
+    if (idx >= sftp->ext->count) {
         ssh_set_error_invalid(sftp->session);
         return NULL;
     }
@@ -606,7 +606,7 @@ const char *sftp_extensions_get_data(sftp_session sftp, unsigned int idx)
         return NULL;
     }
 
-    if (idx > sftp->ext->count) {
+    if (idx >= sftp->ext->count) {
         ssh_set_error_invalid(sftp->session);
         return NULL;
     }
