@@ -461,7 +461,7 @@ enum sftp_longname_field_e {
 static char * sftp_parse_longname(const char *longname,
                                   enum sftp_longname_field_e longname_field)
 {
-    const char *p, *q;
+    const char *p = NULL, *q = NULL;
     size_t len, field = 0;
 
     p = longname;
