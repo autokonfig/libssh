@@ -459,7 +459,7 @@ char *ssh_get_hexa(const unsigned char *what, size_t len)
     size_t i;
     size_t hlen = len * 3;
 
-    if (len > (UINT_MAX - 1) / 3) {
+    if (what == NULL || len < 1 || len > (UINT_MAX - 1) / 3) {
         return NULL;
     }
 
