@@ -499,7 +499,7 @@ ssh_get_hexa_internal(const unsigned char *what, size_t len, bool colons)
     size_t bytes_per_byte = 2 + (colons ? 1 : 0);
     size_t hlen = len * bytes_per_byte;
 
-    if (len > (UINT_MAX - 1) / bytes_per_byte) {
+    if (what == NULL || len < 1 || len > (UINT_MAX - 1) / bytes_per_byte) {
         return NULL;
     }
 
