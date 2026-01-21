@@ -572,12 +572,11 @@ static void evp_cipher_cleanup(struct ssh_cipher_struct *cipher) {
     }
 }
 
-static int
-evp_cipher_aead_get_length(struct ssh_cipher_struct *cipher,
-                           void *in,
-                           uint8_t *out,
-                           size_t len,
-                           uint64_t seq)
+static int evp_cipher_aead_get_length(struct ssh_cipher_struct *cipher,
+                                      void *in,
+                                      uint8_t *out,
+                                      size_t len,
+                                      uint64_t seq)
 {
     (void)cipher;
     (void)seq;
@@ -588,13 +587,12 @@ evp_cipher_aead_get_length(struct ssh_cipher_struct *cipher,
     return SSH_OK;
 }
 
-static void
-evp_cipher_aead_encrypt(struct ssh_cipher_struct *cipher,
-                        void *in,
-                        void *out,
-                        size_t len,
-                        uint8_t *tag,
-                        uint64_t seq)
+static void evp_cipher_aead_encrypt(struct ssh_cipher_struct *cipher,
+                                    void *in,
+                                    void *out,
+                                    size_t len,
+                                    uint8_t *tag,
+                                    uint64_t seq)
 {
     size_t authlen, aadlen;
     uint8_t lastiv[1];
@@ -608,10 +606,7 @@ evp_cipher_aead_encrypt(struct ssh_cipher_struct *cipher,
     authlen = cipher->tag_size;
 
     /* increment IV */
-    rc = EVP_CIPHER_CTX_ctrl(cipher->ctx,
-                             EVP_CTRL_GCM_IV_GEN,
-                             1,
-                             lastiv);
+    rc = EVP_CIPHER_CTX_ctrl(cipher->ctx, EVP_CTRL_GCM_IV_GEN, 1, lastiv);
     if (rc == 0) {
         SSH_LOG(SSH_LOG_TRACE, "EVP_CTRL_GCM_IV_GEN failed");
         return;
@@ -643,9 +638,7 @@ evp_cipher_aead_encrypt(struct ssh_cipher_struct *cipher,
     }
 
     /* compute tag */
-    rc = EVP_EncryptFinal(cipher->ctx,
-                          NULL,
-                          &tmplen);
+    rc = EVP_EncryptFinal(cipher->ctx, NULL, &tmplen);
     if (rc < 0) {
         SSH_LOG(SSH_LOG_TRACE, "EVP_EncryptFinal failed: Failed to create a tag");
         return;
@@ -661,12 +654,11 @@ evp_cipher_aead_encrypt(struct ssh_cipher_struct *cipher,
     }
 }
 
-static int
-evp_cipher_aead_decrypt(struct ssh_cipher_struct *cipher,
-                        void *complete_packet,
-                        uint8_t *out,
-                        size_t encrypted_size,
-                        uint64_t seq)
+static int evp_cipher_aead_decrypt(struct ssh_cipher_struct *cipher,
+                                   void *complete_packet,
+                                   uint8_t *out,
+                                   size_t encrypted_size,
+                                   uint64_t seq)
 {
     size_t authlen, aadlen;
     uint8_t lastiv[1];
@@ -679,10 +671,7 @@ evp_cipher_aead_decrypt(struct ssh_cipher_struct *cipher,
     authlen = cipher->tag_size;
 
     /* increment IV */
-    rc = EVP_CIPHER_CTX_ctrl(cipher->ctx,
-                             EVP_CTRL_GCM_IV_GEN,
-                             1,
-                             lastiv);
+    rc = EVP_CIPHER_CTX_ctrl(cipher->ctx, EVP_CTRL_GCM_IV_GEN, 1, lastiv);
     if (rc == 0) {
         SSH_LOG(SSH_LOG_TRACE, "EVP_CTRL_GCM_IV_GEN failed");
         return SSH_ERROR;
@@ -692,7 +681,8 @@ evp_cipher_aead_decrypt(struct ssh_cipher_struct *cipher,
     rc = EVP_CIPHER_CTX_ctrl(cipher->ctx,
                              EVP_CTRL_GCM_SET_TAG,
                              (int)authlen,
-                             (unsigned char *)complete_packet + aadlen + encrypted_size);
+                             (unsigned char *)complete_packet + aadlen +
+                                 encrypted_size);
     if (rc == 0) {
         SSH_LOG(SSH_LOG_TRACE, "EVP_CTRL_GCM_SET_TAG failed");
         return SSH_ERROR;
@@ -731,11 +721,10 @@ evp_cipher_aead_decrypt(struct ssh_cipher_struct *cipher,
     }
 
     /* verify tag */
-    rc = EVP_DecryptFinal(cipher->ctx,
-                          NULL,
-                          &outlen);
+    rc = EVP_DecryptFinal(cipher->ctx, NULL, &outlen);
     if (rc < 0) {
-        SSH_LOG(SSH_LOG_TRACE, "EVP_DecryptFinal failed: Failed authentication");
+        SSH_LOG(SSH_LOG_TRACE,
+                "EVP_DecryptFinal failed: Failed authentication");
         return SSH_ERROR;
     }
 
@@ -762,8 +751,7 @@ struct chacha20_poly1305_keysched {
 #endif /* OPENSSL_VERSION_NUMBER */
 };
 
-static void
-chacha20_poly1305_cleanup(struct ssh_cipher_struct *cipher)
+static void chacha20_poly1305_cleanup(struct ssh_cipher_struct *cipher)
 {
     struct chacha20_poly1305_keysched *ctx = NULL;
 
@@ -774,7 +762,7 @@ chacha20_poly1305_cleanup(struct ssh_cipher_struct *cipher)
     ctx = cipher->chacha20_schedule;
 
     EVP_CIPHER_CTX_free(ctx->main_evp);
-    ctx->main_evp  = NULL;
+    ctx->main_evp = NULL;
     EVP_CIPHER_CTX_free(ctx->header_evp);
     ctx->header_evp = NULL;
 #if OPENSSL_VERSION_NUMBER < 0x30000000L
@@ -791,10 +779,9 @@ chacha20_poly1305_cleanup(struct ssh_cipher_struct *cipher)
     SAFE_FREE(cipher->chacha20_schedule);
 }
 
-static int
-chacha20_poly1305_set_key(struct ssh_cipher_struct *cipher,
-                          void *key,
-                          UNUSED_PARAM(void *IV))
+static int chacha20_poly1305_set_key(struct ssh_cipher_struct *cipher,
+                                     void *key,
+                                     UNUSED_PARAM(void *IV))
 {
     struct chacha20_poly1305_keysched *ctx = NULL;
     uint8_t *u8key = key;
@@ -873,10 +860,9 @@ out:
 
 static const uint8_t zero_block[CHACHA20_BLOCKSIZE] = {0};
 
-static int
-chacha20_poly1305_set_iv(struct ssh_cipher_struct *cipher,
-                         uint64_t seq,
-                         int do_encrypt)
+static int chacha20_poly1305_set_iv(struct ssh_cipher_struct *cipher,
+                                    uint64_t seq,
+                                    int do_encrypt)
 {
     struct chacha20_poly1305_keysched *ctx = cipher->chacha20_schedule;
     uint8_t seqbuf[16] = {0};
@@ -906,10 +892,9 @@ chacha20_poly1305_set_iv(struct ssh_cipher_struct *cipher,
     return SSH_OK;
 }
 
-static int
-chacha20_poly1305_packet_setup(struct ssh_cipher_struct *cipher,
-                               uint64_t seq,
-                               int do_encrypt)
+static int chacha20_poly1305_packet_setup(struct ssh_cipher_struct *cipher,
+                                          uint64_t seq,
+                                          int do_encrypt)
 {
     struct chacha20_poly1305_keysched *ctx = cipher->chacha20_schedule;
     uint8_t poly_key[CHACHA20_BLOCKSIZE];
@@ -939,8 +924,10 @@ chacha20_poly1305_packet_setup(struct ssh_cipher_struct *cipher,
 #if OPENSSL_VERSION_NUMBER < 0x30000000L
     if (ctx->key == NULL) {
         /* Poly1305 Initialization needs to know the actual key */
-        ctx->key = EVP_PKEY_new_mac_key(EVP_PKEY_POLY1305, NULL,
-                                        poly_key, POLY1305_KEYLEN);
+        ctx->key = EVP_PKEY_new_mac_key(EVP_PKEY_POLY1305,
+                                        NULL,
+                                        poly_key,
+                                        POLY1305_KEYLEN);
         if (ctx->key == NULL) {
             SSH_LOG(SSH_LOG_TRACE, "EVP_PKEY_new_mac_key failed");
             goto out;
@@ -952,9 +939,12 @@ chacha20_poly1305_packet_setup(struct ssh_cipher_struct *cipher,
         }
     } else {
         /* Updating the key is easier but less obvious */
-        rv = EVP_PKEY_CTX_ctrl(ctx->pctx, -1, EVP_PKEY_OP_SIGNCTX,
-                                EVP_PKEY_CTRL_SET_MAC_KEY,
-                                POLY1305_KEYLEN, (void *)poly_key);
+        rv = EVP_PKEY_CTX_ctrl(ctx->pctx,
+                               -1,
+                               EVP_PKEY_OP_SIGNCTX,
+                               EVP_PKEY_CTRL_SET_MAC_KEY,
+                               POLY1305_KEYLEN,
+                               (void *)poly_key);
         if (rv <= 0) {
             SSH_LOG(SSH_LOG_TRACE, "EVP_PKEY_CTX_ctrl failed");
             goto out;
@@ -1017,16 +1007,15 @@ chacha20_poly1305_aead_decrypt_length(struct ssh_cipher_struct *cipher,
     return SSH_OK;
 }
 
-static int
-chacha20_poly1305_aead_decrypt(struct ssh_cipher_struct *cipher,
-                               void *complete_packet,
-                               uint8_t *out,
-                               size_t encrypted_size,
-                               uint64_t seq)
+static int chacha20_poly1305_aead_decrypt(struct ssh_cipher_struct *cipher,
+                                          void *complete_packet,
+                                          uint8_t *out,
+                                          size_t encrypted_size,
+                                          uint64_t seq)
 {
     struct chacha20_poly1305_keysched *ctx = cipher->chacha20_schedule;
-    uint8_t *mac = (uint8_t *)complete_packet + sizeof(uint32_t) +
-                   encrypted_size;
+    uint8_t *mac =
+        (uint8_t *)complete_packet + sizeof(uint32_t) + encrypted_size;
     uint8_t tag[POLY1305_TAGLEN] = {0};
     int ret = SSH_ERROR;
     int rv, cmp, len = 0;
@@ -1058,7 +1047,8 @@ chacha20_poly1305_aead_decrypt(struct ssh_cipher_struct *cipher,
         goto out;
     }
 #else
-    rv = EVP_MAC_update(ctx->mctx, complete_packet,
+    rv = EVP_MAC_update(ctx->mctx,
+                        complete_packet,
                         encrypted_size + sizeof(uint32_t));
     if (rv != 1) {
         SSH_LOG(SSH_LOG_TRACE, "EVP_MAC_update failed");
@@ -1106,13 +1096,12 @@ out:
     return ret;
 }
 
-static void
-chacha20_poly1305_aead_encrypt(struct ssh_cipher_struct *cipher,
-                               void *in,
-                               void *out,
-                               size_t len,
-                               uint8_t *tag,
-                               uint64_t seq)
+static void chacha20_poly1305_aead_encrypt(struct ssh_cipher_struct *cipher,
+                                           void *in,
+                                           void *out,
+                                           size_t len,
+                                           uint8_t *tag,
+                                           uint64_t seq)
 {
     struct ssh_packet_header *in_packet = in, *out_packet = out;
     struct chacha20_poly1305_keysched *ctx = cipher->chacha20_schedule;
@@ -1128,7 +1117,8 @@ chacha20_poly1305_aead_encrypt(struct ssh_cipher_struct *cipher,
 
 #ifdef DEBUG_CRYPTO
     ssh_log_hexdump("plaintext length",
-                    (unsigned char *)&in_packet->length, sizeof(uint32_t));
+                    (unsigned char *)&in_packet->length,
+                    sizeof(uint32_t));
 #endif /* DEBUG_CRYPTO */
     /* step 2, encrypt length field */
     ret = EVP_CipherUpdate(ctx->header_evp,
@@ -1142,7 +1132,8 @@ chacha20_poly1305_aead_encrypt(struct ssh_cipher_struct *cipher,
     }
 #ifdef DEBUG_CRYPTO
     ssh_log_hexdump("encrypted length",
-                    (unsigned char *)&out_packet->length, outlen);
+                    (unsigned char *)&out_packet->length,
+                    outlen);
 #endif /* DEBUG_CRYPTO */
     ret = EVP_CipherFinal_ex(ctx->header_evp, (uint8_t *)out + outlen, &outlen);
     if (ret != 1 || outlen != 0) {
@@ -1175,7 +1166,7 @@ chacha20_poly1305_aead_encrypt(struct ssh_cipher_struct *cipher,
         return;
     }
 #else
-    ret = EVP_MAC_update(ctx->mctx, (void*)out_packet, len);
+    ret = EVP_MAC_update(ctx->mctx, (void *)out_packet, len);
     if (ret != 1) {
         SSH_LOG(SSH_LOG_TRACE, "EVP_MAC_update failed");
         return;
@@ -1191,11 +1182,10 @@ chacha20_poly1305_aead_encrypt(struct ssh_cipher_struct *cipher,
 #endif /* HAVE_OPENSSL_EVP_CHACHA20 */
 
 #ifdef WITH_INSECURE_NONE
-static void
-none_crypt(UNUSED_PARAM(struct ssh_cipher_struct *cipher),
-           void *in,
-           void *out,
-           size_t len)
+static void none_crypt(UNUSED_PARAM(struct ssh_cipher_struct *cipher),
+                       void *in,
+                       void *out,
+                       size_t len)
 {
     memcpy(out, in, len);
 }
@@ -1206,163 +1196,163 @@ none_crypt(UNUSED_PARAM(struct ssh_cipher_struct *cipher),
  */
 static struct ssh_cipher_struct ssh_ciphertab[] = {
 #ifdef HAVE_BLOWFISH
-  {
-    .name = "blowfish-cbc",
-    .blocksize = 8,
-    .ciphertype = SSH_BLOWFISH_CBC,
-    .keysize = 128,
-    .set_encrypt_key = evp_cipher_set_encrypt_key,
-    .set_decrypt_key = evp_cipher_set_decrypt_key,
-    .encrypt = evp_cipher_encrypt,
-    .decrypt = evp_cipher_decrypt,
-    .cleanup = evp_cipher_cleanup
-  },
+    {
+        .name = "blowfish-cbc",
+        .blocksize = 8,
+        .ciphertype = SSH_BLOWFISH_CBC,
+        .keysize = 128,
+        .set_encrypt_key = evp_cipher_set_encrypt_key,
+        .set_decrypt_key = evp_cipher_set_decrypt_key,
+        .encrypt = evp_cipher_encrypt,
+        .decrypt = evp_cipher_decrypt,
+        .cleanup = evp_cipher_cleanup,
+    },
 #endif /* HAVE_BLOWFISH */
 #ifdef HAS_AES
-  {
-    .name = "aes128-ctr",
-    .blocksize = AES_BLOCK_SIZE,
-    .ciphertype = SSH_AES128_CTR,
-    .keysize = 128,
-    .set_encrypt_key = evp_cipher_set_encrypt_key,
-    .set_decrypt_key = evp_cipher_set_decrypt_key,
-    .encrypt = evp_cipher_encrypt,
-    .decrypt = evp_cipher_decrypt,
-    .cleanup = evp_cipher_cleanup
-  },
-  {
-    .name = "aes192-ctr",
-    .blocksize = AES_BLOCK_SIZE,
-    .ciphertype = SSH_AES192_CTR,
-    .keysize = 192,
-    .set_encrypt_key = evp_cipher_set_encrypt_key,
-    .set_decrypt_key = evp_cipher_set_decrypt_key,
-    .encrypt = evp_cipher_encrypt,
-    .decrypt = evp_cipher_decrypt,
-    .cleanup = evp_cipher_cleanup
-  },
-  {
-    .name = "aes256-ctr",
-    .blocksize = AES_BLOCK_SIZE,
-    .ciphertype = SSH_AES256_CTR,
-    .keysize = 256,
-    .set_encrypt_key = evp_cipher_set_encrypt_key,
-    .set_decrypt_key = evp_cipher_set_decrypt_key,
-    .encrypt = evp_cipher_encrypt,
-    .decrypt = evp_cipher_decrypt,
-    .cleanup = evp_cipher_cleanup
-  },
-  {
-    .name = "aes128-cbc",
-    .blocksize = AES_BLOCK_SIZE,
-    .ciphertype = SSH_AES128_CBC,
-    .keysize = 128,
-    .set_encrypt_key = evp_cipher_set_encrypt_key,
-    .set_decrypt_key = evp_cipher_set_decrypt_key,
-    .encrypt = evp_cipher_encrypt,
-    .decrypt = evp_cipher_decrypt,
-    .cleanup = evp_cipher_cleanup
-  },
-  {
-    .name = "aes192-cbc",
-    .blocksize = AES_BLOCK_SIZE,
-    .ciphertype = SSH_AES192_CBC,
-    .keysize = 192,
-    .set_encrypt_key = evp_cipher_set_encrypt_key,
-    .set_decrypt_key = evp_cipher_set_decrypt_key,
-    .encrypt = evp_cipher_encrypt,
-    .decrypt = evp_cipher_decrypt,
-    .cleanup = evp_cipher_cleanup
-  },
-  {
-    .name = "aes256-cbc",
-    .blocksize = AES_BLOCK_SIZE,
-    .ciphertype = SSH_AES256_CBC,
-    .keysize = 256,
-    .set_encrypt_key = evp_cipher_set_encrypt_key,
-    .set_decrypt_key = evp_cipher_set_decrypt_key,
-    .encrypt = evp_cipher_encrypt,
-    .decrypt = evp_cipher_decrypt,
-    .cleanup = evp_cipher_cleanup
-  },
-  {
-    .name = "aes128-gcm@openssh.com",
-    .blocksize = AES_BLOCK_SIZE,
-    .lenfield_blocksize = 4, /* not encrypted, but authenticated */
-    .ciphertype = SSH_AEAD_AES128_GCM,
-    .keysize = 128,
-    .tag_size = AES_GCM_TAGLEN,
-    .set_encrypt_key = evp_cipher_set_encrypt_key,
-    .set_decrypt_key = evp_cipher_set_decrypt_key,
-    .aead_encrypt = evp_cipher_aead_encrypt,
-    .aead_decrypt_length = evp_cipher_aead_get_length,
-    .aead_decrypt = evp_cipher_aead_decrypt,
-    .cleanup = evp_cipher_cleanup
-  },
-  {
-    .name = "aes256-gcm@openssh.com",
-    .blocksize = AES_BLOCK_SIZE,
-    .lenfield_blocksize = 4, /* not encrypted, but authenticated */
-    .ciphertype = SSH_AEAD_AES256_GCM,
-    .keysize = 256,
-    .tag_size = AES_GCM_TAGLEN,
-    .set_encrypt_key = evp_cipher_set_encrypt_key,
-    .set_decrypt_key = evp_cipher_set_decrypt_key,
-    .aead_encrypt = evp_cipher_aead_encrypt,
-    .aead_decrypt_length = evp_cipher_aead_get_length,
-    .aead_decrypt = evp_cipher_aead_decrypt,
-    .cleanup = evp_cipher_cleanup
-  },
+    {
+        .name = "aes128-ctr",
+        .blocksize = AES_BLOCK_SIZE,
+        .ciphertype = SSH_AES128_CTR,
+        .keysize = 128,
+        .set_encrypt_key = evp_cipher_set_encrypt_key,
+        .set_decrypt_key = evp_cipher_set_decrypt_key,
+        .encrypt = evp_cipher_encrypt,
+        .decrypt = evp_cipher_decrypt,
+        .cleanup = evp_cipher_cleanup,
+    },
+    {
+        .name = "aes192-ctr",
+        .blocksize = AES_BLOCK_SIZE,
+        .ciphertype = SSH_AES192_CTR,
+        .keysize = 192,
+        .set_encrypt_key = evp_cipher_set_encrypt_key,
+        .set_decrypt_key = evp_cipher_set_decrypt_key,
+        .encrypt = evp_cipher_encrypt,
+        .decrypt = evp_cipher_decrypt,
+        .cleanup = evp_cipher_cleanup,
+    },
+    {
+        .name = "aes256-ctr",
+        .blocksize = AES_BLOCK_SIZE,
+        .ciphertype = SSH_AES256_CTR,
+        .keysize = 256,
+        .set_encrypt_key = evp_cipher_set_encrypt_key,
+        .set_decrypt_key = evp_cipher_set_decrypt_key,
+        .encrypt = evp_cipher_encrypt,
+        .decrypt = evp_cipher_decrypt,
+        .cleanup = evp_cipher_cleanup,
+    },
+    {
+        .name = "aes128-cbc",
+        .blocksize = AES_BLOCK_SIZE,
+        .ciphertype = SSH_AES128_CBC,
+        .keysize = 128,
+        .set_encrypt_key = evp_cipher_set_encrypt_key,
+        .set_decrypt_key = evp_cipher_set_decrypt_key,
+        .encrypt = evp_cipher_encrypt,
+        .decrypt = evp_cipher_decrypt,
+        .cleanup = evp_cipher_cleanup,
+    },
+    {
+        .name = "aes192-cbc",
+        .blocksize = AES_BLOCK_SIZE,
+        .ciphertype = SSH_AES192_CBC,
+        .keysize = 192,
+        .set_encrypt_key = evp_cipher_set_encrypt_key,
+        .set_decrypt_key = evp_cipher_set_decrypt_key,
+        .encrypt = evp_cipher_encrypt,
+        .decrypt = evp_cipher_decrypt,
+        .cleanup = evp_cipher_cleanup,
+    },
+    {
+        .name = "aes256-cbc",
+        .blocksize = AES_BLOCK_SIZE,
+        .ciphertype = SSH_AES256_CBC,
+        .keysize = 256,
+        .set_encrypt_key = evp_cipher_set_encrypt_key,
+        .set_decrypt_key = evp_cipher_set_decrypt_key,
+        .encrypt = evp_cipher_encrypt,
+        .decrypt = evp_cipher_decrypt,
+        .cleanup = evp_cipher_cleanup,
+    },
+    {
+        .name = "aes128-gcm@openssh.com",
+        .blocksize = AES_BLOCK_SIZE,
+        .lenfield_blocksize = 4, /* not encrypted, but authenticated */
+        .ciphertype = SSH_AEAD_AES128_GCM,
+        .keysize = 128,
+        .tag_size = AES_GCM_TAGLEN,
+        .set_encrypt_key = evp_cipher_set_encrypt_key,
+        .set_decrypt_key = evp_cipher_set_decrypt_key,
+        .aead_encrypt = evp_cipher_aead_encrypt,
+        .aead_decrypt_length = evp_cipher_aead_get_length,
+        .aead_decrypt = evp_cipher_aead_decrypt,
+        .cleanup = evp_cipher_cleanup,
+    },
+    {
+        .name = "aes256-gcm@openssh.com",
+        .blocksize = AES_BLOCK_SIZE,
+        .lenfield_blocksize = 4, /* not encrypted, but authenticated */
+        .ciphertype = SSH_AEAD_AES256_GCM,
+        .keysize = 256,
+        .tag_size = AES_GCM_TAGLEN,
+        .set_encrypt_key = evp_cipher_set_encrypt_key,
+        .set_decrypt_key = evp_cipher_set_decrypt_key,
+        .aead_encrypt = evp_cipher_aead_encrypt,
+        .aead_decrypt_length = evp_cipher_aead_get_length,
+        .aead_decrypt = evp_cipher_aead_decrypt,
+        .cleanup = evp_cipher_cleanup,
+    },
 #endif /* HAS_AES */
 #ifdef HAS_DES
-  {
-    .name = "3des-cbc",
-    .blocksize = 8,
-    .ciphertype = SSH_3DES_CBC,
-    .keysize = 192,
-    .set_encrypt_key = evp_cipher_set_encrypt_key,
-    .set_decrypt_key = evp_cipher_set_decrypt_key,
-    .encrypt = evp_cipher_encrypt,
-    .decrypt = evp_cipher_decrypt,
-    .cleanup = evp_cipher_cleanup
-  },
+    {
+        .name = "3des-cbc",
+        .blocksize = 8,
+        .ciphertype = SSH_3DES_CBC,
+        .keysize = 192,
+        .set_encrypt_key = evp_cipher_set_encrypt_key,
+        .set_decrypt_key = evp_cipher_set_decrypt_key,
+        .encrypt = evp_cipher_encrypt,
+        .decrypt = evp_cipher_decrypt,
+        .cleanup = evp_cipher_cleanup,
+    },
 #endif /* HAS_DES */
-  {
+    {
 #ifdef HAVE_OPENSSL_EVP_CHACHA20
-    .ciphertype = SSH_AEAD_CHACHA20_POLY1305,
-    .name = "chacha20-poly1305@openssh.com",
-    .blocksize = CHACHA20_BLOCKSIZE/8,
-    .lenfield_blocksize = 4,
-    .keylen = sizeof(struct chacha20_poly1305_keysched),
-    .keysize = 2 * CHACHA20_KEYLEN * 8,
-    .tag_size = POLY1305_TAGLEN,
-    .set_encrypt_key = chacha20_poly1305_set_key,
-    .set_decrypt_key = chacha20_poly1305_set_key,
-    .aead_encrypt = chacha20_poly1305_aead_encrypt,
-    .aead_decrypt_length = chacha20_poly1305_aead_decrypt_length,
-    .aead_decrypt = chacha20_poly1305_aead_decrypt,
-    .cleanup = chacha20_poly1305_cleanup
+        .ciphertype = SSH_AEAD_CHACHA20_POLY1305,
+        .name = "chacha20-poly1305@openssh.com",
+        .blocksize = CHACHA20_BLOCKSIZE / 8,
+        .lenfield_blocksize = 4,
+        .keylen = sizeof(struct chacha20_poly1305_keysched),
+        .keysize = 2 * CHACHA20_KEYLEN * 8,
+        .tag_size = POLY1305_TAGLEN,
+        .set_encrypt_key = chacha20_poly1305_set_key,
+        .set_decrypt_key = chacha20_poly1305_set_key,
+        .aead_encrypt = chacha20_poly1305_aead_encrypt,
+        .aead_decrypt_length = chacha20_poly1305_aead_decrypt_length,
+        .aead_decrypt = chacha20_poly1305_aead_decrypt,
+        .cleanup = chacha20_poly1305_cleanup
 #else
-    .name = "chacha20-poly1305@openssh.com"
+        .name = "chacha20-poly1305@openssh.com"
 #endif /* HAVE_OPENSSL_EVP_CHACHA20 */
-  },
+    },
 #ifdef WITH_INSECURE_NONE
-  {
-    .name = "none",
-    .blocksize = 8,
-    .keysize = 0,
-    .encrypt = none_crypt,
-    .decrypt = none_crypt,
-  },
+    {
+        .name = "none",
+        .blocksize = 8,
+        .keysize = 0,
+        .encrypt = none_crypt,
+        .decrypt = none_crypt,
+    },
 #endif /* WITH_INSECURE_NONE */
-  {
-    .name = NULL
-  }
+    {
+        .name = NULL,
+    },
 };
 
 struct ssh_cipher_struct *ssh_get_ciphertab(void)
 {
-  return ssh_ciphertab;
+    return ssh_ciphertab;
 }
 
 /**
@@ -1378,19 +1368,19 @@ int ssh_crypto_init(void)
     if (libcrypto_initialized) {
         return SSH_OK;
     }
-    if (OpenSSL_version_num() != OPENSSL_VERSION_NUMBER){
-        SSH_LOG(SSH_LOG_DEBUG, "libssh compiled with %s "
-            "headers, currently running with %s.",
-            OPENSSL_VERSION_TEXT,
-            OpenSSL_version(OpenSSL_version_num())
-        );
+    if (OpenSSL_version_num() != OPENSSL_VERSION_NUMBER) {
+        SSH_LOG(SSH_LOG_DEBUG,
+                "libssh compiled with %s "
+                "headers, currently running with %s.",
+                OPENSSL_VERSION_TEXT,
+                OpenSSL_version(OpenSSL_version_num()));
     }
 #ifdef CAN_DISABLE_AESNI
     /*
      * disable AES-NI when running within Valgrind, because they generate
      * too many "uninitialized memory access" false positives
      */
-    if (RUNNING_ON_VALGRIND){
+    if (RUNNING_ON_VALGRIND) {
         SSH_LOG(SSH_LOG_INFO, "Running within Valgrind, disabling AES-NI");
         /* Bit #57 denotes AES-NI instruction set extension */
         OPENSSL_ia32cap &= ~(1LL << 57);
@@ -1453,7 +1443,8 @@ void ssh_crypto_finalize(void)
  * @internal
  * @brief Create EVP_PKEY from parameters
  *
- * @param[in] name Algorithm to use. For more info see manpage of EVP_PKEY_CTX_new_from_name
+ * @param[in] name Algorithm to use. For more info see manpage of
+ * EVP_PKEY_CTX_new_from_name
  *
  * @param[in] param_bld Constructed param builder for the pkey
  *
@@ -1463,8 +1454,10 @@ void ssh_crypto_finalize(void)
  *
  * @return 0 on success, -1 on error
  */
-int evp_build_pkey(const char* name, OSSL_PARAM_BLD *param_bld,
-                   EVP_PKEY **pkey, int selection)
+int evp_build_pkey(const char *name,
+                   OSSL_PARAM_BLD *param_bld,
+                   EVP_PKEY **pkey,
+                   int selection)
 {
     int rc;
     EVP_PKEY_CTX *ctx = EVP_PKEY_CTX_new_from_name(NULL, name, NULL);
@@ -1596,8 +1589,7 @@ int evp_dup_ed25519_pkey(const ssh_key key, ssh_key new_key, int demote)
 
 #endif /* OPENSSL_VERSION_NUMBER */
 
-ssh_string
-pki_key_make_ecpoint_string(const EC_GROUP *g, const EC_POINT *p)
+ssh_string pki_key_make_ecpoint_string(const EC_GROUP *g, const EC_POINT *p)
 {
     ssh_string s = NULL;
     size_t len;
