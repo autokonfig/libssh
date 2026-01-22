@@ -77,7 +77,7 @@ endif (WITH_NACL)
 
 # Disable symbol versioning in non UNIX platforms
 if (UNIX)
-    find_package(ABIMap 0.3.1)
+    find_package(ABIMap 0.4.0)
 else (UNIX)
     set(WITH_SYMBOL_VERSIONING OFF)
 endif (UNIX)
