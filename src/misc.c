@@ -1233,6 +1233,18 @@ char *ssh_path_expand_tilde(const char *d)
     return r;
 }
 
+char *ssh_get_local_hostname(void)
+{
+    char host[NI_MAXHOST] = {0};
+    int rc;
+
+    rc = gethostname(host, sizeof(host));
+    if (rc != 0) {
+        return NULL;
+    }
+    return strdup(host);
+}
+
 /** @internal
  * @brief expands a string in function of session options
  * @param[in] s Format string to expand. Known parameters:
@@ -1249,7 +1261,6 @@ char *ssh_path_expand_tilde(const char *d)
  */
 char *ssh_path_expand_escape(ssh_session session, const char *s)
 {
-    char host[NI_MAXHOST] = {0};
     char *buf = NULL;
     char *r = NULL;
     char *x = NULL;
@@ -1313,9 +1324,7 @@ char *ssh_path_expand_escape(ssh_session session, const char *s)
             x = ssh_get_local_username();
             break;
         case 'l':
-            if (gethostname(host, sizeof(host) == 0)) {
-                x = strdup(host);
-            }
+            x = ssh_get_local_hostname();
             break;
         case 'h':
             if (session->opts.host) {
