@@ -110,20 +110,20 @@
 #ifdef _WIN32
 char *ssh_get_user_home_dir(void)
 {
-  char tmp[PATH_MAX] = {0};
-  char *szPath = NULL;
+    char tmp[PATH_MAX] = {0};
+    char *szPath = NULL;
 
-  if (SHGetSpecialFolderPathA(NULL, tmp, CSIDL_PROFILE, TRUE)) {
-    szPath = malloc(strlen(tmp) + 1);
-    if (szPath == NULL) {
-      return NULL;
+    if (SHGetSpecialFolderPathA(NULL, tmp, CSIDL_PROFILE, TRUE)) {
+        szPath = malloc(strlen(tmp) + 1);
+        if (szPath == NULL) {
+            return NULL;
+        }
+
+        strcpy(szPath, tmp);
+        return szPath;
     }
 
-    strcpy(szPath, tmp);
-    return szPath;
-  }
-
-  return NULL;
+    return NULL;
 }
 
 /* we have read access on file */
