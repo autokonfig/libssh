@@ -108,7 +108,7 @@
  */
 
 #ifdef _WIN32
-char *ssh_get_user_home_dir(void)
+static char *ssh_get_user_home_dir_internal(void)
 {
     char tmp[PATH_MAX] = {0};
     char *szPath = NULL;
@@ -298,7 +298,7 @@ int ssh_is_ipaddr(const char *str)
 #define NSS_BUFLEN_PASSWD 4096
 #endif /* NSS_BUFLEN_PASSWD */
 
-char *ssh_get_user_home_dir(void)
+static char *ssh_get_user_home_dir_internal(void)
 {
     char *szPath = NULL;
     struct passwd pwd;
@@ -313,7 +313,6 @@ char *ssh_get_user_home_dir(void)
             return NULL;
         }
         snprintf(buf, sizeof(buf), "%s", szPath);
-
         return strdup(buf);
     }
 
@@ -427,6 +426,29 @@ int ssh_is_ipaddr(const char *str)
 }
 
 #endif /* _WIN32 */
+
+char *ssh_get_user_home_dir(ssh_session session)
+{
+    char *szPath = NULL;
+
+    /* If used previously, reuse cached value */
+    if (session != NULL && session->opts.homedir != NULL) {
+        return strdup(session->opts.homedir);
+    }
+
+    szPath = ssh_get_user_home_dir_internal();
+    if (szPath == NULL) {
+        return NULL;
+    }
+
+    if (session != NULL) {
+        /* cache it:
+         * failure is not fatal -- at worst we will just not cache it */
+        session->opts.homedir = strdup(szPath);
+    }
+
+    return szPath;
+}
 
 char *ssh_lowercase(const char* str)
 {
@@ -1189,7 +1211,7 @@ char *ssh_path_expand_tilde(const char *d)
     } else {
         ld = strlen(d);
         p = (char *) d;
-        h = ssh_get_user_home_dir();
+        h = ssh_get_user_home_dir(NULL);
     }
     if (h == NULL) {
         return NULL;

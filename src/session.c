@@ -405,6 +405,7 @@ void ssh_free(ssh_session session)
   SAFE_FREE(session->opts.bindaddr);
   SAFE_FREE(session->opts.username);
   SAFE_FREE(session->opts.host);
+  SAFE_FREE(session->opts.homedir);
   SAFE_FREE(session->opts.sshdir);
   SAFE_FREE(session->opts.knownhosts);
   SAFE_FREE(session->opts.global_knownhosts);

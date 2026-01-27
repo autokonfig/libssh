@@ -253,6 +253,7 @@ struct ssh_session_struct {
         char *username;
         char *host;
         char *bindaddr; /* bind the client to an ip addr */
+        char *homedir;
         char *sshdir;
         char *knownhosts;
         char *global_knownhosts;

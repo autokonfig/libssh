@@ -52,7 +52,7 @@ static void torture_get_user_home_dir(void **state) {
 
     (void) state;
 
-    user = ssh_get_user_home_dir();
+    user = ssh_get_user_home_dir(NULL);
     assert_non_null(user);
 #ifndef _WIN32
     assert_string_equal(user, pwd->pw_dir);
