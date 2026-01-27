@@ -490,6 +490,38 @@ char *ssh_hostport(const char *host, int port)
     return dest;
 }
 
+static char *
+ssh_get_hexa_internal(const unsigned char *what, size_t len, bool colons)
+{
+    const char h[] = "0123456789abcdef";
+    char *hexa = NULL;
+    size_t i;
+    size_t bytes_per_byte = 2 + (colons ? 1 : 0);
+    size_t hlen = len * bytes_per_byte;
+
+    if (len > (UINT_MAX - 1) / bytes_per_byte) {
+        return NULL;
+    }
+
+    hexa = calloc(hlen + 1, sizeof(char));
+    if (hexa == NULL) {
+        return NULL;
+    }
+
+    for (i = 0; i < len; i++) {
+        hexa[i * bytes_per_byte] = h[(what[i] >> 4) & 0xF];
+        hexa[i * bytes_per_byte + 1] = h[what[i] & 0xF];
+        if (colons) {
+            hexa[i * bytes_per_byte + 2] = ':';
+        }
+    }
+    if (colons) {
+        hexa[hlen - 1] = '\0';
+    }
+
+    return hexa;
+}
+
 /**
  * @brief Convert a buffer into a colon separated hex string.
  * The caller has to free the memory.
@@ -505,28 +537,7 @@ char *ssh_hostport(const char *host, int port)
  */
 char *ssh_get_hexa(const unsigned char *what, size_t len)
 {
-    const char h[] = "0123456789abcdef";
-    char *hexa = NULL;
-    size_t i;
-    size_t hlen = len * 3;
-
-    if (len > (UINT_MAX - 1) / 3) {
-        return NULL;
-    }
-
-    hexa = malloc(hlen + 1);
-    if (hexa == NULL) {
-        return NULL;
-    }
-
-    for (i = 0; i < len; i++) {
-        hexa[i * 3] = h[(what[i] >> 4) & 0xF];
-        hexa[i * 3 + 1] = h[what[i] & 0xF];
-        hexa[i * 3 + 2] = ':';
-    }
-    hexa[hlen - 1] = '\0';
-
-    return hexa;
+    return ssh_get_hexa_internal(what, len, true);
 }
 
 /**
@@ -1245,15 +1256,93 @@ char *ssh_get_local_hostname(void)
     return strdup(host);
 }
 
+static char *get_connection_hash(ssh_session session)
+{
+    unsigned char conn_hash[SHA_DIGEST_LENGTH];
+    char *local_hostname = NULL;
+    SHACTX ctx = sha1_init();
+    char strport[10] = {0};
+    unsigned int port;
+    int rc;
+
+    if (session == NULL) {
+        return NULL;
+    }
+
+    if (ctx == NULL) {
+        goto err;
+    }
+
+    /* Local hostname %l */
+    local_hostname = ssh_get_local_hostname();
+    if (local_hostname == NULL) {
+        goto err;
+    }
+    rc = sha1_update(ctx, local_hostname, strlen(local_hostname));
+    if (rc != SSH_OK) {
+        goto err;
+    }
+    SAFE_FREE(local_hostname);
+
+    /* Remote hostname %h */
+    rc = sha1_update(ctx, session->opts.host, strlen(session->opts.host));
+    if (rc != SSH_OK) {
+        goto err;
+    }
+
+    /* Remote port %p */
+    ssh_options_get_port(session, &port);
+    snprintf(strport, sizeof(strport), "%d", port);
+    rc = sha1_update(ctx, strport, strlen(strport));
+    if (rc != SSH_OK) {
+        goto err;
+    }
+
+    /* The remote username %r */
+    rc = sha1_update(ctx,
+                     session->opts.username,
+                     strlen(session->opts.username));
+    if (rc != SSH_OK) {
+        goto err;
+    }
+
+    /* ProxyJump */
+    if (session->opts.proxy_jumps_str != NULL) {
+        rc = sha1_update(ctx,
+                         session->opts.proxy_jumps_str,
+                         strlen(session->opts.proxy_jumps_str));
+    }
+    if (rc != SSH_OK) {
+        goto err;
+    }
+
+    /* Frees context */
+    rc = sha1_final(conn_hash, ctx);
+    if (rc != SSH_OK) {
+        goto err;
+    }
+
+    return ssh_get_hexa_internal(conn_hash, SHA_DIGEST_LENGTH, false);
+
+err:
+    free(local_hostname);
+    sha1_ctx_free(ctx);
+    return NULL;
+}
+
 /** @internal
  * @brief expands a string in function of session options
+ *
  * @param[in] s Format string to expand. Known parameters:
- *              %d user home directory (~)
- *              %h target host name
- *              %u local username
- *              %l local hostname
- *              %r remote username
- *              %p remote port
+ *               - %d user home directory (~)
+ *               - %h target host name
+ *               - %u local username
+ *               - %l local hostname
+ *               - %r remote username
+ *               - %p remote port
+ *               - %j proxyjump string
+ *               - %C Hash of %l%h%p%r%j
+ *
  * @returns Expanded string. The caller needs to free the memory using
  *          ssh_string_free_char().
  *
@@ -1355,6 +1444,16 @@ char *ssh_path_expand_escape(ssh_session session, const char *s)
             x = strdup(tmp);
             break;
         }
+        case 'j':
+            if (session->opts.proxy_jumps_str != NULL) {
+                x = strdup(session->opts.proxy_jumps_str);
+            } else {
+                x = strdup("");
+            }
+            break;
+        case 'C':
+            x = get_connection_hash(session);
+            break;
         default:
             ssh_set_error(session, SSH_FATAL, "Wrong escape sequence detected");
             free(buf);

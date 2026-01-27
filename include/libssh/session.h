@@ -250,6 +250,7 @@ struct ssh_session_struct {
         struct ssh_list *certificate_non_exp;
         struct ssh_list *proxy_jumps;
         struct ssh_list *proxy_jumps_user_cb;
+        char *proxy_jumps_str;
         char *username;
         char *host;
         char *bindaddr; /* bind the client to an ip addr */

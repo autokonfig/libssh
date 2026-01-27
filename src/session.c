@@ -384,6 +384,7 @@ void ssh_free(ssh_session session)
     ssh_proxyjumps_free(session->opts.proxy_jumps);
     SSH_LIST_FREE(session->opts.proxy_jumps);
     SSH_LIST_FREE(session->opts.proxy_jumps_user_cb);
+    SAFE_FREE(session->opts.proxy_jumps_str);
 
     while ((b = ssh_list_pop_head(struct ssh_buffer_struct *,
                                   session->out_queue)) != NULL) {
