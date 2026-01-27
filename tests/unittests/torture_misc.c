@@ -288,7 +288,8 @@ static void torture_path_expand_escape(void **state) {
     const char *s = "%d/%h/%p/by/%r";
     char *e;
 
-    session->opts.sshdir = strdup("guru");
+    /* Set the homedir here to prevent querying the NSS DB */
+    session->opts.homedir = strdup("guru");
     session->opts.host = strdup("meditation");
     session->opts.port = 0;
     session->opts.username = strdup("root");
@@ -310,9 +311,10 @@ static void torture_path_expand_known_hosts(void **state) {
     ssh_session session = *state;
     char *tmp;
 
-    session->opts.sshdir = strdup("/home/guru/.ssh");
+    /* Set the homedir here to prevent querying the NSS DB */
+    session->opts.homedir = strdup("/home/guru");
 
-    tmp = ssh_path_expand_escape(session, "%d/known_hosts");
+    tmp = ssh_path_expand_escape(session, "%d/.ssh/known_hosts");
     assert_non_null(tmp);
     assert_string_equal(tmp, "/home/guru/.ssh/known_hosts");
     free(tmp);
@@ -322,9 +324,10 @@ static void torture_path_expand_percent(void **state) {
     ssh_session session = *state;
     char *tmp;
 
-    session->opts.sshdir = strdup("/home/guru/.ssh");
+    /* Set the homedir here to prevent querying the NSS DB */
+    session->opts.homedir = strdup("/home/guru");
 
-    tmp = ssh_path_expand_escape(session, "%d/config%%1");
+    tmp = ssh_path_expand_escape(session, "%d/.ssh/config%%1");
     assert_non_null(tmp);
     assert_string_equal(tmp, "/home/guru/.ssh/config%1");
     free(tmp);

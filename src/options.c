@@ -1963,7 +1963,7 @@ int ssh_options_parse_config(ssh_session session, const char *filename)
 
     /* set default filename */
     if (filename == NULL) {
-        expanded_filename = ssh_path_expand_escape(session, "%d/config");
+        expanded_filename = ssh_path_expand_escape(session, "%d/.ssh/config");
     } else {
         expanded_filename = ssh_path_expand_escape(session, filename);
     }
@@ -2021,7 +2021,7 @@ int ssh_options_apply(ssh_session session)
 
     if ((session->opts.exp_flags & SSH_OPT_EXP_FLAG_KNOWNHOSTS) == 0) {
         if (session->opts.knownhosts == NULL) {
-            tmp = ssh_path_expand_escape(session, "%d/known_hosts");
+            tmp = ssh_path_expand_escape(session, "%d/.ssh/known_hosts");
         } else {
             tmp = ssh_path_expand_escape(session, session->opts.knownhosts);
         }

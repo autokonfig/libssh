@@ -2067,25 +2067,25 @@ static void torture_options_apply (void **state)
     rc = ssh_list_append(awaited_list, id);
     assert_int_equal(rc, SSH_OK);
     /* append the defaults; this list is copied from ssh_new@src/session.c */
-    id = ssh_path_expand_escape(session, "%d/id_ed25519");
+    id = ssh_path_expand_escape(session, "%d/.ssh/id_ed25519");
     rc = ssh_list_append(awaited_list, id);
     assert_int_equal(rc, SSH_OK);
 #ifdef HAVE_ECC
-    id = ssh_path_expand_escape(session, "%d/id_ecdsa");
+    id = ssh_path_expand_escape(session, "%d/.ssh/id_ecdsa");
     rc = ssh_list_append(awaited_list, id);
     assert_int_equal(rc, SSH_OK);
 #endif
-    id = ssh_path_expand_escape(session, "%d/id_rsa");
+    id = ssh_path_expand_escape(session, "%d/.ssh/id_rsa");
     rc = ssh_list_append(awaited_list, id);
     assert_int_equal(rc, SSH_OK);
 #ifdef WITH_FIDO2
     /* Add security key identities */
-    id = ssh_path_expand_escape(session, "%d/id_ed25519_sk");
+    id = ssh_path_expand_escape(session, "%d/.ssh/id_ed25519_sk");
     rc = ssh_list_append(awaited_list, id);
     assert_int_equal(rc, SSH_OK);
 
 #ifdef HAVE_ECC
-    id = ssh_path_expand_escape(session, "%d/id_ecdsa_sk");
+    id = ssh_path_expand_escape(session, "%d/.ssh/id_ecdsa_sk");
     rc = ssh_list_append(awaited_list, id);
     assert_int_equal(rc, SSH_OK);
 #endif /* HAVE_ECC */

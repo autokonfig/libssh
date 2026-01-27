@@ -1236,7 +1236,7 @@ char *ssh_path_expand_tilde(const char *d)
 /** @internal
  * @brief expands a string in function of session options
  * @param[in] s Format string to expand. Known parameters:
- *              %d SSH configuration directory (~/.ssh)
+ *              %d user home directory (~)
  *              %h target host name
  *              %u local username
  *              %l local hostname
@@ -1301,10 +1301,9 @@ char *ssh_path_expand_escape(ssh_session session, const char *s)
         case '%':
             goto escape;
         case 'd':
-            if (session->opts.sshdir) {
-                x = strdup(session->opts.sshdir);
-            } else {
-                ssh_set_error(session, SSH_FATAL, "Cannot expand sshdir");
+            x = ssh_get_user_home_dir(session);
+            if (x == NULL) {
+                ssh_set_error(session, SSH_FATAL, "Cannot expand homedir");
                 free(buf);
                 free(r);
                 return NULL;
@@ -1348,9 +1347,7 @@ char *ssh_path_expand_escape(ssh_session session, const char *s)
             break;
         }
         default:
-            ssh_set_error(session,
-                          SSH_FATAL,
-                          "Wrong escape sequence detected");
+            ssh_set_error(session, SSH_FATAL, "Wrong escape sequence detected");
             free(buf);
             free(r);
             return NULL;

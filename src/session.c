@@ -168,7 +168,7 @@ ssh_session ssh_new(void)
     }
 #endif /* WITH_GSSAPI */
 
-    id = strdup("%d/id_ed25519");
+    id = strdup("%d/.ssh/id_ed25519");
     if (id == NULL) {
         goto err;
     }
@@ -179,7 +179,7 @@ ssh_session ssh_new(void)
     }
 
 #ifdef HAVE_ECC
-    id = strdup("%d/id_ecdsa");
+    id = strdup("%d/.ssh/id_ecdsa");
     if (id == NULL) {
         goto err;
     }
@@ -189,7 +189,7 @@ ssh_session ssh_new(void)
     }
 #endif
 
-    id = strdup("%d/id_rsa");
+    id = strdup("%d/.ssh/id_rsa");
     if (id == NULL) {
         goto err;
     }
@@ -200,7 +200,7 @@ ssh_session ssh_new(void)
 
 #ifdef WITH_FIDO2
     /* Add security key identities */
-    id = strdup("%d/id_ed25519_sk");
+    id = strdup("%d/.ssh/id_ed25519_sk");
     if (id == NULL) {
         goto err;
     }
@@ -210,7 +210,7 @@ ssh_session ssh_new(void)
     }
 
 #ifdef HAVE_ECC
-    id = strdup("%d/id_ecdsa_sk");
+    id = strdup("%d/.ssh/id_ecdsa_sk");
     if (id == NULL) {
         goto err;
     }
