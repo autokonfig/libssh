@@ -1,0 +1,14 @@
+name: sync
+on:
+  schedule:
+    - cron: 13 1 * * *
+  workflow_dispatch: 
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          git clone --mirror --bare https://git.libssh.org/projects/libssh.git libssh
+          cd libssh
+          git remote add gh "https://$GITHUB_ACTOR:${{secrets.RW_TOKEN}}@github.com/$GITHUB_REPOSITORY.git"
+          git push --mirror gh
