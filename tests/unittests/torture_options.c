@@ -839,6 +839,7 @@ static void torture_options_get_identity(void **state)
     char *identity = NULL;
     int rc;
 
+    /* This adds an identity to the head of the list and returns */
     rc = ssh_options_set(session, SSH_OPTIONS_ADD_IDENTITY, "identity1");
     assert_true(rc == 0);
     rc = ssh_options_get(session, SSH_OPTIONS_IDENTITY, &identity);
@@ -856,6 +857,48 @@ static void torture_options_get_identity(void **state)
     assert_non_null(identity);
     assert_string_equal(identity, "identity2");
     ssh_string_free_char(identity);
+
+    /* Iterate over all of the identities */
+    rc = ssh_options_get(session, SSH_OPTIONS_NEXT_IDENTITY, &identity);
+    assert_int_equal(rc, SSH_OK);
+    assert_string_equal(identity, "identity2");
+    ssh_string_free_char(identity);
+
+    rc = ssh_options_get(session, SSH_OPTIONS_NEXT_IDENTITY, &identity);
+    assert_int_equal(rc, SSH_OK);
+    assert_string_equal(identity, "identity1");
+    SAFE_FREE(identity);
+
+    /* here are the default identities */
+    rc = ssh_options_get(session, SSH_OPTIONS_NEXT_IDENTITY, &identity);
+    assert_int_equal(rc, SSH_OK);
+    assert_string_equal(identity, "%d/.ssh/id_ed25519");
+    ssh_string_free_char(identity);
+
+    rc = ssh_options_get(session, SSH_OPTIONS_NEXT_IDENTITY, &identity);
+    assert_int_equal(rc, SSH_OK);
+    assert_string_equal(identity, "%d/.ssh/id_ecdsa");
+    ssh_string_free_char(identity);
+
+    rc = ssh_options_get(session, SSH_OPTIONS_NEXT_IDENTITY, &identity);
+    assert_int_equal(rc, SSH_OK);
+    assert_string_equal(identity, "%d/.ssh/id_rsa");
+    ssh_string_free_char(identity);
+
+#ifdef WITH_FIDO2
+    rc = ssh_options_get(session, SSH_OPTIONS_NEXT_IDENTITY, &identity);
+    assert_int_equal(rc, SSH_OK);
+    assert_string_equal(identity, "%d/.ssh/id_ed25519_sk");
+    ssh_string_free_char(identity);
+
+    rc = ssh_options_get(session, SSH_OPTIONS_NEXT_IDENTITY, &identity);
+    assert_int_equal(rc, SSH_OK);
+    assert_string_equal(identity, "%d/.ssh/id_ecdsa_sk");
+    ssh_string_free_char(identity);
+#endif /* WITH_FIDO2 */
+
+    rc = ssh_options_get(session, SSH_OPTIONS_NEXT_IDENTITY, &identity);
+    assert_int_equal(rc, SSH_EOF);
 }
 
 static void torture_options_set_global_knownhosts(void **state)
