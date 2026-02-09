@@ -1264,6 +1264,7 @@ static char *get_connection_hash(ssh_session session)
     SHACTX ctx = sha1_init();
     char strport[10] = {0};
     unsigned int port;
+    char *username = NULL;
     int rc;
 
     if (session == NULL) {
@@ -1286,6 +1287,9 @@ static char *get_connection_hash(ssh_session session)
     SAFE_FREE(local_hostname);
 
     /* Remote hostname %h */
+    if (session->opts.host == NULL) {
+        goto err;
+    }
     rc = sha1_update(ctx, session->opts.host, strlen(session->opts.host));
     if (rc != SSH_OK) {
         goto err;
@@ -1300,9 +1304,18 @@ static char *get_connection_hash(ssh_session session)
     }
 
     /* The remote username %r */
-    rc = sha1_update(ctx,
-                     session->opts.username,
-                     strlen(session->opts.username));
+    username = session->opts.username;
+    if (username == NULL) {
+        /* fallback to local username: it will be used if not explicitly set */
+        username = ssh_get_local_username();
+        if (username == NULL) {
+            goto err;
+        }
+    }
+    rc = sha1_update(ctx, username, strlen(username));
+    if (username != session->opts.username) {
+        free(username);
+    }
     if (rc != SSH_OK) {
         goto err;
     }
