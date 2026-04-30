@@ -536,9 +536,9 @@ static void free_test_server_state(void **state)
 
 static int setup_kbdint_server(void **state)
 {
-    struct torture_state *s;
-    struct server_state_st *ss;
-    struct test_server_st *tss;
+    struct torture_state *s = NULL;
+    struct server_state_st *ss = NULL;
+    struct test_server_st *tss = NULL;
 
     char rsa_hostkey[1024] = {0};
 
@@ -638,9 +638,9 @@ static int setup_kbdint_server(void **state)
 
 static int teardown_kbdint_server(void **state)
 {
-    struct torture_state *s;
-    struct server_state_st *ss;
-    struct test_server_st *tss;
+    struct torture_state *s = NULL;
+    struct server_state_st *ss = NULL;
+    struct test_server_st *tss = NULL;
 
     tss = *state;
     assert_non_null(tss);
@@ -664,9 +664,9 @@ static int teardown_kbdint_server(void **state)
 static int session_setup(void **state)
 {
     struct test_server_st *tss = *state;
-    struct torture_state *s;
+    struct torture_state *s = NULL;
     int verbosity = torture_libssh_verbosity();
-    struct passwd *pwd;
+    struct passwd *pwd = NULL;
     bool b = false;
     int rc;
 
@@ -698,7 +698,7 @@ static int session_setup(void **state)
 static int session_teardown(void **state)
 {
     struct test_server_st *tss = *state;
-    struct torture_state *s;
+    struct torture_state *s = NULL;
 
     assert_non_null(tss);
 
@@ -714,8 +714,8 @@ static int session_teardown(void **state)
 static void torture_server_auth_kbdint(void **state)
 {
     struct test_server_st *tss = *state;
-    struct torture_state *s;
-    ssh_session session;
+    struct torture_state *s = NULL;
+    ssh_session session = NULL;
     int rc;
 
     assert_non_null(tss);

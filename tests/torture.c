@@ -91,7 +91,7 @@ static const char *pattern = NULL;
 /* TODO missing code coverage */
 static int _torture_auth_kbdint(ssh_session session, const char *password)
 {
-    const char *prompt;
+    const char *prompt = NULL;
     char echo;
     int err;
 
@@ -129,10 +129,10 @@ static int _torture_auth_kbdint(ssh_session session, const char *password)
 
 int torture_rmdirs(const char *path)
 {
-    DIR *d;
-    struct dirent *dp;
+    DIR *d = NULL;
+    struct dirent *dp = NULL;
     struct stat sb;
-    char *fname;
+    char *fname = NULL;
 
     if ((d = opendir(path)) != NULL) {
         while (stat(path, &sb) == 0) {
@@ -301,7 +301,7 @@ ssh_session torture_ssh_session(struct torture_state *s,
                                 const char *user,
                                 const char *password)
 {
-    ssh_session session;
+    ssh_session session = NULL;
     int method;
     int rc;
 
@@ -596,9 +596,9 @@ out:
 struct torture_sftp *torture_sftp_session_channel(ssh_session session,
                                                   ssh_channel channel)
 {
-    struct torture_sftp *t;
+    struct torture_sftp *t = NULL;
     char template[] = "/tmp/ssh_torture_XXXXXX";
-    char *p;
+    char *p = NULL;
     int rc;
 
     if (session == NULL) {
@@ -744,8 +744,8 @@ const char *torture_server1_address(int family)
 
 void torture_setup_socket_dir(void **state)
 {
-    struct torture_state *s;
-    const char *p;
+    struct torture_state *s = NULL;
+    const char *p = NULL;
     size_t len;
     char *env = NULL;
     char gss_dir[1024] = {0};
@@ -1264,7 +1264,7 @@ void torture_set_env_from_str(const char *env)
  * */
 void torture_setup_libssh_server(void **state, const char *server_path)
 {
-    struct torture_state *s;
+    struct torture_state *s = NULL;
     char start_cmd[1024];
     char timeout_cmd[512];
     char env[1024];
